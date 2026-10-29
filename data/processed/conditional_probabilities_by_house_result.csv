@@ -1,0 +1,16 @@
+asset,house_result,window,n,mean_return_pct,median_return_pct,prob_positive,prob_positive_ci_low,prob_positive_ci_high,prob_negative,prob_gain_over_5pct,prob_loss_over_5pct,p10_return_pct,p90_return_pct
+DOW,Unknown,post5,0,,,,,,,,,,
+DOW,Unknown,post20,0,,,,,,,,,,
+DOW,Unknown,post60,0,,,,,,,,,,
+NASDAQ,Unknown,post5,0,,,,,,,,,,
+NASDAQ,Unknown,post20,0,,,,,,,,,,
+NASDAQ,Unknown,post60,0,,,,,,,,,,
+QQQ,Unknown,post5,15,-1.7331,-2.4077,0.2,0.0705,0.4519,0.8,0.0,0.0,-2.4077,1.1015
+QQQ,Unknown,post20,15,-1.288,-2.7375,0.2667,0.109,0.5195,0.7333,0.0,0.0,-2.7375,2.784
+QQQ,Unknown,post60,15,11.0503,16.128,0.9333,0.7018,0.9881,0.0667,0.7333,0.0667,0.8378,16.128
+SPX,Unknown,post5,0,,,,,,,,,,
+SPX,Unknown,post20,0,,,,,,,,,,
+SPX,Unknown,post60,0,,,,,,,,,,
+SPY,Unknown,post5,16,0.3486,0.1717,0.875,0.6398,0.965,0.125,0.0,0.0,-0.4703,1.6607
+SPY,Unknown,post20,16,-1.465,-3.1988,0.3125,0.1416,0.556,0.6875,0.0,0.0,-3.1988,2.6612
+SPY,Unknown,post60,16,3.4816,4.0206,0.875,0.6398,0.965,0.125,0.1875,0.0625,0.407,6.3103

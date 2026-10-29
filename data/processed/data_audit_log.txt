@@ -1,0 +1,128 @@
+
+SPX audit:
+  dataset: SPX
+  rows: 16938
+  start_date: 1959-08-25 00:00:00
+  end_date: 2026-10-27 00:00:00
+  duplicate_dates: 0
+  missing_dates: 0
+  missing_close: 0
+  nonpositive_close: 0
+  invalid_ohlc: 0
+
+DJI audit:
+  dataset: DJI
+  rows: 19447
+  start_date: 1949-07-12 00:00:00
+  end_date: 2026-10-27 00:00:00
+  duplicate_dates: 0
+  missing_dates: 0
+  missing_close: 0
+  nonpositive_close: 0
+  invalid_ohlc: 0
+
+NASDAQ audit:
+  dataset: NASDAQ
+  rows: 14049
+  start_date: 1971-02-05 00:00:00
+  end_date: 2026-10-27 00:00:00
+  duplicate_dates: 0
+  missing_dates: 0
+  missing_close: 0
+  nonpositive_close: 0
+  invalid_ohlc: 0
+
+QQQ resampling:
+  minute rows: 1866015
+  daily rows: 4853
+  start: 2000-01-03 00:00:00
+  end: 2019-04-18 00:00:00
+
+SPY resampling:
+  minute rows: 2607824
+  daily rows: 6737
+  start: 2000-01-03 00:00:00
+  end: 2026-10-16 00:00:00
+
+VIX audit:
+  dataset: VIX
+  rows: 9292
+  start_date: 1990-01-03 00:00:00
+  end_date: 2026-10-27 00:00:00
+  duplicate_dates: 0
+  missing_dates: 0
+  missing_close: 0
+  nonpositive_close: 0
+  invalid_ohlc: 0
+
+DFF audit:
+  rows: 26416
+  start: 1954-07-01 00:00:00
+  end: 2026-10-26 00:00:00
+  missing values: 0
+  duplicate dates: 0
+
+DGS10 audit:
+  rows: 16910
+  start: 1962-01-02 00:00:00
+  end: 2026-10-26 00:00:00
+  missing values: 721
+  duplicate dates: 0
+
+DGS2 audit:
+  rows: 13150
+  start: 1976-06-01 00:00:00
+  end: 2026-10-26 00:00:00
+  missing values: 553
+  duplicate dates: 0
+
+CPI audit:
+  rows: 957
+  start: 1947-01-01 00:00:00
+  end: 2026-09-01 00:00:00
+  missing values: 1
+  duplicate dates: 0
+
+UNRATE audit:
+  rows: 945
+  start: 1948-01-01 00:00:00
+  end: 2026-09-01 00:00:00
+  missing values: 1
+  duplicate dates: 0
+
+USREC audit:
+  rows: 801
+  start: 1960-01-01 00:00:00
+  end: 2026-09-01 00:00:00
+  missing values: 0
+  duplicate dates: 0
+
+SWING political-data audit:
+  rows: 434
+  columns: ['state', 'year', 'cycle_type', 'office', 'democratic_candidate', 'republican_candidate', 'third_party_candidate', 'winner_party', 'winner_name', 'victory_margin_pct', 'key_insight']
+  duplicate full rows: 0
+
+PRESIDENTIAL political-data audit:
+  rows: 51
+  columns: ['state', 'abbrev', 'region', '2024_classification', 'p1964', 'p1968', 'p1972', 'p1976', 'p1980', 'p1984', 'p1988', 'p1992', 'p1996', 'p2000', 'p2004', 'p2008', 'p2012', 'p2016', 'p2020', 'p2024', 'full_trend_notes']
+  duplicate full rows: 0
+
+FINAL DATASET SUMMARY
+
+market_daily
+  rows: 19504
+  columns: 65
+  start: 1949-07-12 00:00:00
+  end: 2026-10-27 00:00:00
+
+macro_daily
+  rows: 27712
+  columns: 7
+  start: 1947-01-01 00:00:00
+  end: 2026-10-27 00:00:00
+
+election_events
+  rows: 16
+  columns: 11
+  first election: 1962-11-06 00:00:00
+  last election: 2022-11-08 00:00:00

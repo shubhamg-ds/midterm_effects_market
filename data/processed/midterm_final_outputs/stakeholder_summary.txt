@@ -1,0 +1,27 @@
+U.S. MIDTERM ELECTIONS: HISTORICAL MARKET STUDY
+====================================================
+
+Purpose
+Describe historical market returns after U.S. midterm elections.
+This is a descriptive historical study, not a causal analysis or a
+guaranteed forecast of the 2026 market.
+
+S&P 500 historical results
+- 5 sessions: 11/16 positive (68.8%); 95% Wilson interval 44.4%-85.8%; mean return +0.72%; median +0.97%.
+- 20 sessions: 13/16 positive (81.2%); 95% Wilson interval 57.0%-93.4%; mean return +1.63%; median +2.47%.
+- 60 sessions: 14/16 positive (87.5%); 95% Wilson interval 64.0%-96.5%; mean return +6.22%; median +6.48%.
+
+Interpretation and limitations
+- Positive frequencies are historical sample proportions, not
+  calibrated probabilities that the next election will produce a gain.
+- Historical midterm events are few; individual outcomes vary.
+- The midterm versus non-midterm comparison is descriptive and does
+  not show that the election caused any return difference.
+- Asset histories differ. Missing or pre-inception windows are excluded.
+- SPX and DJI are index series; SPY and QQQ are ETF series.
+- The 2026 election is not a completed historical event in this study.
+
+Historical events in the election file: 16
+Market data end dates: SPX: 2026-10-27; DJI: 2026-10-27; NASDAQ: 2026-10-27; SPY: 2026-10-16; QQQ: 2019-04-18
+
+Output directory: data\processed\midterm_final_outputs

@@ -1,0 +1,5 @@
+dataset,rows,start_date,end_date,duplicate_dates,missing_dates,missing_close,nonpositive_close,invalid_ohlc
+SPX,16938,1959-08-25,2026-10-27,0,0,0,0,0
+DJI,19447,1949-07-12,2026-10-27,0,0,0,0,0
+NASDAQ,14049,1971-02-05,2026-10-27,0,0,0,0,0
+VIX,9292,1990-01-03,2026-10-27,0,0,0,0,0

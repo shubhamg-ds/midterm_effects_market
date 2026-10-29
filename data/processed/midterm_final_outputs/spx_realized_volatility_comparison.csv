@@ -1,0 +1,2 @@
+valid_paired_events,mean_pre20_rv_pct,mean_post20_rv_pct,mean_change_pp,median_change_pp,paired_ttest_p_value,wilcoxon_p_value
+16,5.462386291477353,4.540523189994187,-0.921863101483166,-0.8290139303533388,0.03568136295660273,0.0506591796875

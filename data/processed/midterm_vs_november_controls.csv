@@ -1,0 +1,7 @@
+asset,window,midterm_n,control_n,midterm_mean_pct,control_mean_pct,difference_pp,midterm_positive_probability,control_positive_probability,welch_p
+QQQ,post5,15,14,-1.7331,-1.677,-0.0561,0.2,0.2857,0.9661
+QQQ,post20,15,14,-1.288,-0.496,-0.7921,0.2667,0.4286,0.7285
+QQQ,post60,15,14,11.0503,-2.5241,13.5743,0.9333,0.6429,0.0004
+SPY,post5,16,20,0.3486,0.2057,0.1428,0.875,0.6,0.8709
+SPY,post20,16,20,-1.465,1.2555,-2.7205,0.3125,0.65,0.0392
+SPY,post60,16,20,3.4816,1.8339,1.6477,0.875,0.65,0.378

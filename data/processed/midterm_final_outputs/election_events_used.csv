@@ -1,0 +1,17 @@
+election_year,election_date,event_type,president_party,house_seat_change_president_party,senate_seat_change_president_party,house_control_before,house_control_after,senate_control_before,senate_control_after,first_market_session_after
+1962,1962-11-06,Midterm,,,,,,,,1962-11-07
+1966,1966-11-08,Midterm,,,,,,,,1966-11-09
+1970,1970-11-03,Midterm,,,,,,,,1970-11-04
+1974,1974-11-05,Midterm,,,,,,,,1974-11-06
+1978,1978-11-07,Midterm,,,,,,,,1978-11-08
+1982,1982-11-02,Midterm,,,,,,,,1982-11-03
+1986,1986-11-04,Midterm,,,,,,,,1986-11-05
+1990,1990-11-06,Midterm,,,,,,,,1990-11-07
+1994,1994-11-08,Midterm,,,,,,,,1994-11-09
+1998,1998-11-03,Midterm,,,,,,,,1998-11-04
+2002,2002-11-05,Midterm,,,,,,,,2002-11-06
+2006,2006-11-07,Midterm,,,,,,,,2006-11-08
+2010,2010-11-02,Midterm,,,,,,,,2010-11-03
+2014,2014-11-04,Midterm,,,,,,,,2014-11-05
+2018,2018-11-06,Midterm,,,,,,,,2018-11-07
+2022,2022-11-08,Midterm,,,,,,,,2022-11-09
