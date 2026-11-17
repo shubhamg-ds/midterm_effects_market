@@ -1,0 +1,165 @@
+===============================================================================
+SOP - POST-MIDTERM WEEKLY SHORT PUT, WITH THE THREE-MODEL / THIN-PREMIUM GATE
+Rule E3 ("Unanimous_IV"), as implemented in weekly_signal_tradesheets.xlsx
+Source of truth: risk_gate.py, build_baseline.py, weekly_put_variants.py,
+                 make_notebook.py            Written 2026-11-17
+===============================================================================
+
+0. SCOPE
+-------------------------------------------------------------------------------
+0.1  Instrument traded      SPY weekly put, 1 contract, multiplier 100.
+0.2  Instrument modelled    SPX daily tape (1963 onward) for all features and
+                            labels. The models forecast SPX weekly excursions
+                            in %; the trade is executed and stopped on SPY.
+0.3  Trading window         1 Jan -> 15 Jul of the year AFTER a US midterm
+                            election (post-midterm year). Nothing is traded
+                            outside it.
+0.4  Cadence               One trade per Monday-week, 28 weeks per cycle.
+                            Cycles with option data: 2011, 2015, 2019, 2023
+                            = 112 weeks. Next window: 1 Jan - 15 Jul 2027.
+0.5  Structure              Naked short put. No 3% OTM long wing
+                            (BUY_3PCT_OTM_WING = False).
+
+1. WEEK DEFINITION
+-------------------------------------------------------------------------------
+1.1  A week runs Monday to Friday. The entry session is the FIRST exchange
+     session of that week inside the window; the exit session is the LAST.
+1.2  A Monday holiday moves entry to Tuesday. The week is never skipped for a
+     holiday. Weeks with fewer than 2 sessions are dropped (none occur).
+1.3  Weeks in the sample: 88 full 5-session, 22 of 4 sessions, 2 of 3.
+
+2. ENTRY
+-------------------------------------------------------------------------------
+2.1  Time: 09:30 of the entry session. Fill = OPEN of the first option minute
+     bar at or after 09:30. If the chosen strike has not printed by 15:00,
+     the week is not traded.
+2.2  Strike: the listed strike NEAREST the entry spot (= the entry session's
+     SPY open). If that strike has no entry bar or no exit bar, step out to the
+     next-nearest, up to 8 tries. Realised strike distance from spot in the
+     sample: median 0.07%, max 0.34%.
+2.3  Expiry: the weekly expiry nearest the week's last SCHEDULED session
+     (typically Friday). Time to expiry at entry: 4.27 days (4-session weeks
+     are shorter).
+2.4  Direction: SELL to open, 1 contract. Premium received = entry_price.
+2.5  Entry spot (entry_spot) is fixed at the fill and is the reference for
+     every level below. SPY prices must be on the TRADED (unadjusted) scale -
+     the dividend-adjusted minute file prints SPY at 96 in 2011 vs 127 traded,
+     which selects a penny strike. spot_bars.py rescales it; do not bypass.
+
+3. LEVELS  (percentages of ENTRY SPOT, never of the premium)
+-------------------------------------------------------------------------------
+3.1  TARGET  = entry_spot x (1 + 1.5995%)      index moves FOR the position
+3.2  STOP    = entry_spot x (1 - 1.1306%)      index moves AGAINST it
+3.3  Both levels are on the UNDERLYING (SPY). The option premium never carries
+     a stop or a target of its own.
+3.4  Both levels are live on every bar of the hold, the last session included.
+
+4. MONITORING AND EXIT
+-------------------------------------------------------------------------------
+4.1  MONITORING GRID = DAILY (1D) BARS. This is the grid the 5,075 baseline was
+     produced on and it is the live rule.
+       - target touched  : session HIGH >= target
+       - stop touched    : session LOW  <= stop
+       - a session that touches BOTH is booked as the STOP (the daily bar does
+         not say which came first).
+4.2  EXIT ON A TOUCH: the option's CLOSE at 16:00 of the SAME SESSION the level
+     was touched on. The position is NOT closed at the moment of the touch.
+     Expect to sit through the rest of that session - median 3.5 hours.
+4.3  EXIT WITH NO TOUCH: the close of the last option bar of the week's last
+     session (effectively 15:59 Friday). Booked as TIME_EXIT.
+4.4  There is NO intraday stop and no 1-hour trigger. Replacing 4.2 with an
+     exit at the close of the touching HOUR costs 1,005 over the 112 weeks
+     (stops -794, targets -211): the end-of-day fill is the better rule in this
+     sample and is the rule of record.
+4.5  P&L = (entry_price - exit_price) x 100 x 1 contract.
+4.6  Sample outcome mix: STOP 45, TARGET 36, TIME_EXIT 31 of 112.
+
+5. THE SIGNAL - HOW A WEEK IS JUDGED
+-------------------------------------------------------------------------------
+5.1  THREE QUANTILE-REGRESSION MODELS, no logistic regression. Each is fitted
+     on POST-MIDTERM WEEKS ONLY, EXPANDING BY CYCLE: the 2011 cycle trains on
+     1963-2007, 2015 on 1963-2011, 2019 on 1963-2015, 2023 on 1963-2019. No
+     week is ever scored by a model that saw it.
+
+     Model A  "month+rv+path"      (11 features)
+              m_Feb m_Mar m_Apr m_May m_Jun m_Jul   (Jan is the base level)
+              rv5 rv20                              (annualised realised vol %)
+              dist_high20 mom_4w mom_12w
+     Model C  "month+rv"           (8 features)
+              m_Feb m_Mar m_Apr m_May m_Jun m_Jul rv5 rv20
+              -> NOTE: C is a strict SUBSET of A. They are not independent.
+     Model B  "lookback, no calendar" (11 features, look-back family: l1_*,
+              r4_*, path). Its exact membership is NOT recorded in the repo -
+              the script that fitted it is missing and only its cached output
+              survives (data/processed/gate_hold_B_lookback_no_month.pkl.gz).
+              Re-derive and write it into risk_gate.py before trading it.
+
+5.2  FEATURE TIMING. Every feature must be known at the fill:
+       - month dummy uses the week's SCHEDULED last session;
+       - realised vol is stamped on the last session BEFORE entry;
+       - every look-back feature is shifted so the week sees only weeks that
+         CLOSED before it; rolling windows are applied AFTER the shift.
+
+5.3  PROBABILITIES. Fit each model at 19 taus (.02 .04 .06 .08 .10 .13 .16 .20
+     .25 .30 .35 .40 .50 .60 .70 .80 .90 .95 .98) on both targets, SORT each
+     week's predicted quantiles (to remove quantile crossing), then invert at
+     the trade's own levels:
+       p_stop   = the tau at which Q_tau(dd_w)  = -1.1306%
+       p_target = 1 - the tau at which Q_tau(mfe_w) = +1.5995%
+       edge     = p_target - p_stop
+     Clamp to the ends of the tau grid; never extrapolate.
+
+5.4  PREMIUM TEST ("thin_pay"). At the fill:
+       pay_pct = entry_price / entry_spot x 100
+       pay_ref = the expanding MEDIAN of pay_pct over the EARLIER weeks of the
+                 SAME cycle, shifted one week, minimum 3 observations
+       thin_pay = (pay_pct <= pay_ref)
+     Sample: pay_pct median 0.71% of spot; 61 of 112 weeks are thin.
+
+5.5  THE DECISION (rule E3, the Unanimous_IV sheet):
+       SKIP the week  <=>  edge_A <= 0 AND edge_B <= 0 AND edge_C <= 0
+                           AND thin_pay is TRUE
+       otherwise TAKE at full size.
+     No fitted threshold, no skip fraction, no quantile cut. The only numbers
+     are a zero and a median.
+     Sample: 28 weeks skipped, 84 taken.
+
+5.6  SIZING. Binary - 1 contract or nothing. No partial size.
+
+6. WHAT TO RECORD PER WEEK
+-------------------------------------------------------------------------------
+monday, entry_date, exit_date, entry_strike, entry_spot, entry_price,
+exit_price, pnl, exit_reason (STOP / TARGET / TIME_EXIT), target_pct, stop_pct,
+edge_A, edge_B, edge_C, votes_edge, p_stop, p_target, iv_atm, pay_pct, pay_ref,
+thin_pay, decision, size, pnl_gated, pnl_forgone, gate_outcome.
+pnl_forgone is signed: + = profit given up, - = loss avoided.
+
+7. HARD CONSTRAINTS - DO NOT CHANGE WITHOUT A RERUN
+-------------------------------------------------------------------------------
+7.1  Stop 1.1306% and target 1.5995% are fixed inputs, not tuned here.
+7.2  Trigger grid stays 1D (see 4.4).
+7.3  Models are refitted ONLY between cycles, on post-midterm weeks only,
+     expanding, never on the window being traded.
+7.4  Thresholds stay at 0 (edge) and the shifted expanding median (premium).
+     Re-introducing a fitted skip fraction invalidates the result.
+7.5  SPY prices stay on the traded scale (2.5).
+
+8. KNOWN LIMITS - READ BEFORE SIZING UP
+-------------------------------------------------------------------------------
+8.1  Sample = 4 option cycles, 112 weeks. Baseline (take every week) 5,075.
+     E3 gives 5,610, i.e. +535, at 1.28 saved per 1.00 of profit sacrificed
+     (1,878 sacrificed against 2,413 avoided).
+8.2  That +535 is one cycle: 2015 +964, 2023 +22, 2011 -135, 2019 -316.
+8.3  Models A and C are near-duplicates (edge correlation 0.91, Cohen's kappa
+     0.82 on the skip vote); effective independent dimensions across the three
+     models is ~1.9, not 3. "Unanimous" is closer to two votes than three.
+8.4  The premium test does the work: thin-premium alone is -553, the spot
+     signal alone is -1,556 to -3,263, and C-alone + thin premium gives +602 -
+     more than the three-model unanimity.
+8.5  The stop does not cap the daily loss: once the stop level is touched the
+     index had already run a median 1.82% (mean 2.05%) below entry on the hour,
+     and 16 of 46 touch-weeks closed that session still below the stop.
+8.6  The stop level is touched in 46 of 112 weeks (41%) - in 45 of them while
+     the position was open. 17 of those touches land in the 09:30-10:30 hour,
+     i.e. 5.5 hours of holding before the 16:00 fill.
+===============================================================================

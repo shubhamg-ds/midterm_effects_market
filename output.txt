@@ -1,0 +1,68 @@
+1 · What goes into each model, and how independent they are
+
+I verified the feature lists by re-fitting from the cached panel and matching the stored edges bit-for-bit. A and C reproduce exactly. B does not — and that is a finding, not a failure.
+
+model	features	k	reproduced?
+A month_rv_path	m_Feb m_Mar m_Apr m_May m_Jun m_Jul + rv5 rv20 + dist_high20 mom_4w mom_12w	11	exact (max diff 0.00e+00)
+C month_rv	m_Feb…m_Jul + rv5 rv20	8	exact (0.00e+00)
+B lookback_no_month	the look-back family (l1_*, r4_*, path). 11 features per the stored selection table	11	no — best of 4 searches left a 0.087 residual on edge
+
+On B: the script that fitted it is not in the repo. make_notebook.py only reads R.cached("hold_B_lookback_no_month"), and risk_gate.py has no definition for it. The only record is the pickle. I ran four searches (backward greedy over all 19 look-back columns, forward greedy on p_stop, all 78 “13-choose-11” block drops, backward greedy on a pre-dropped panel) and none got the residual below 0.087 on an edge that spans about ±0.5. Since the same harness reproduces A and C to zero, B’s features genuinely differ from every candidate I tried. It cannot be re-run from what is on disk.
+
+Two things it did tell me: B’s training set starts at 1967 rather than 1963, because the panel was pre-dropped on the whole look-back block (the l1_breach expanding-quantile needs 104 closed weeks and the pre-1962 tape is mostly zero-range bars).
+
+Also — the rules sheet in your workbook mislabels this. It lists the look-back block as “MODEL A”, the month dummies as “MODEL B” and the rv block as “MODEL C”. That’s the three feature families, not the three models. The real models mix them, and A contains C whole.
+
+Should you worry about collinearity? Within a model, no. Between the models, yes — badly.
+
+Inside each model the VIFs are benign: A’s worst is dist_high20 at 2.59, C’s worst is rv20 at 2.17. Nothing near a problem, and quantile regression is fairly robust to it anyway.
+
+The problem is that C is a strict subset of A — all 8 of C’s features are in A’s 11:
+
+A vs C: 8 shared, Jaccard 0.73    edge correlation 0.912 (Spearman 0.921)
+A vs B: 3 shared (the path block)  edge correlation 0.199
+B vs C: 0 shared                   edge correlation 0.103
+
+Eigenvalues of the 3×3 edge correlation matrix are [1.96, 0.96, 0.08] — the first PC carries 65% and the effective number of independent dimensions is ~1.9, not 3. On the binary skip vote, A and C agree in 102 of 112 weeks, Cohen’s κ = +0.82. A vs B is κ = 0.22, B vs C is κ = 0.15.
+
+So “all three must agree” is in practice “A and B must agree”, with C casting a near-copy of A’s vote. I checked directly: dropping C and requiring A & B & thin gives 31 skips and +7 vs baseline; the E3 three-model set gives 28 skips and +535. C’s only real effect is vetoing 3 skips that A and B both wanted, worth +528. That +528 is essentially the whole headline, and it comes from a model that is a subset of another one, on 3 weeks.
+
+Worse for the three-model story: C alone, with the premium test, is +602 — better than the unanimity. And a real bug in the look-back block: mom_4w and r4_mean_ret are correlated at r = +1.000 (one is rolling(4).sum(), the other rolling(4).mean() of the same shifted series — exact multiples). Any model holding both is rank-deficient; my first B reconstruction returned VIF = ∞ on that pair. If B contains both, its design matrix is singular and its coefficients are not identified.
+
+And the per-cycle split of the +535:
+
+2011  -135      2015  +964      2019  -316      2023   +22
+
+One cycle. I’d treat the Unanimous_IV number as 2015 plus noise, which matches what your own notebook concluded.
+
+2 · Yes — you hold to the session close
+
+The trigger grid is TRIGGER_FREQ = "1D". A touch is detected from the daily low, but bar_grid marks the exit at SESSION_END = 16:00 of that same session. So you see the level break and then sit for the rest of the day. No intraday stop exists in the booked numbers.
+
+How often, over the 112 weeks:
+
+The stop level is touched in 46 weeks (41%) — 45 of them with the position open (the 46th, week of 2023-02-06, had already exited on target two days earlier).
+Median 3.5 hours of holding after the touching hour ends; 17 of those touches land in the 09:30–10:30 bar, so 5.5 hours of exposure.
+Touch hour: 09:30 ×17, 10:30 ×4, 11:30 ×8, 12:30 ×7, 13:30 ×3, 14:30 ×5, 15:30 ×2.
+7 of the 46 touch on the week’s last session, where the day close is the week close.
+By the time the level is touched the index has already run a median 1.82%, mean 2.05% below entry on the hour — well past the 1.1306% stop. Worst week: −5.12%.
+30 of 46 closed back above the stop by that session’s close; 16 closed still below it.
+Stops cluster on Tuesday (18), then Wednesday (10).
+
+I priced the alternative. Exiting at the close of the touching hour instead, using the actual option minute bars:
+
+exit at the day close (as booked) : 5,075
+exit at the touching hour's close: 4,070   (-1,005)
+   STOP      n=45   -6,205  ->  -6,999   (-794)
+   TARGET    n=36   +7,511  ->  +7,300   (-211)
+   TIME_EXIT n=31    3,769  ->   3,769      (0)
+
+Holding on was better in 27 of 45 stop weeks. The gated Unanimous_IV book goes 5,610 → 5,333 on hourly fills. So the end-of-day fill is not a flaw in this sample — intraday reversion pays you for it — but it is a real tail exposure, not a stop: on 16 of 46 occasions you took the whole session’s loss, and the 1D grid also cannot tell which level a both-touched day hit first (it books the stop).
+
+For completeness on adverse moves that never trigger: 77 weeks go ≤ −0.5%, 52 go ≤ −1.0%, 46 ≤ −1.1306%, 21 ≤ −2.0%. Only 6 weeks moved more than 1% against and escaped the stop. Of the 31 time-exit weeks, 2 went past −1%.
+
+3 · SOP
+
+Written to weekly_short_put_SOP.txt — 8 sections, plain text: scope, week definition, entry (strike/fill/expiry/the SPY rescale trap), levels, monitoring and exit including the 1D-grid rule and its measured cost, the signal (three models, expanding-by-cycle fit, 19-tau inversion, thin-premium median, the E3 skip condition), what to log per week, hard constraints, and known limits.
+
+Two things in it you should read before trading it: §5.1 flags that Model B’s features aren’t recoverable from the repo, and §8.3–8.4 record that the unanimity is ~2 votes and that the premium test, not the spot signal, is doing the work.
